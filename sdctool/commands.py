@@ -108,3 +108,51 @@ def status_pipeline(conf, args):
 
     status_result = api.pipeline_status(url, args.pipeline_id, auth, verify_ssl)
     return status_result['status']
+
+def list_pipelines(conf, args):
+    """Retieve SDC pipelines information."""
+    host = conf.config['instances'][args.host]
+    host_url = api._base_url(build_instance_url(host))
+    host_auth = tuple([conf.creds['instances'][args.host]['user'],
+                      conf.creds['instances'][args.host]['pass']])
+    verify_ssl = host.get('verify_ssl', True)
+    params = {}
+    if args.status == 'true':
+        params['includStatus'] = 'true'
+    else:
+        params['includStatus'] = 'false'
+    pipelines = api.pipelines_info(
+        host_url, host_auth, verify_ssl, params=params)
+    return pipelines
+
+def export_offset_pipeline(conf, args):
+    """Export a pipeline's offset to a file."""
+    host = conf.config['instances'][args.host]
+    host_url = api._base_url(build_instance_url(host))
+    host_auth = tuple([conf.creds['instances'][args.host]['user'],
+                      conf.creds['instances'][args.host]['pass']])
+    verify_ssl = host.get('verify_ssl', True)
+    export_json = api.export_offsets(host_url, args.pipeline_id, host_auth, verify_ssl)
+    with open(args.out, 'w') as outFile:
+        outFile.write(json.dumps(export_json, indent=4, sort_keys=False))
+        return (0, '')
+
+def import_offset_pipeline(conf, args):
+    """Import a pipeline's offset from json."""
+    with open(args.input) as offset_json:
+        host = conf.config['instances'][args.host]
+        host_url = api._base_url(build_instance_url(host))
+        host_auth = tuple([conf.creds['instances'][args.host]['user'],
+                        conf.creds['instances'][args.host]['pass']])
+        verify_ssl = host.get('verify_ssl', True)
+        parsed_json = json.load(offset_json)
+        return api.import_offsets(host_url, args.pipeline_id, host_auth, verify_ssl, offsetJson=parsed_json)
+
+def reset_offset_pipeline(conf, args):
+    """Reset a pipeline's offset."""
+    host = conf.config['instances'][args.host]
+    host_url = api._base_url(build_instance_url(host))
+    host_auth = tuple([conf.creds['instances'][args.host]['user'],
+                      conf.creds['instances'][args.host]['pass']])
+    verify_ssl = host.get('verify_ssl', True)
+    return api.reset_offsets(host_url, args.pipeline_id, host_auth, verify_ssl)

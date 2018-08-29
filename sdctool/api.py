@@ -256,6 +256,85 @@ def system_info(url, auth, verify_ssl):
     sysinfo_response.raise_for_status()
     return sysinfo_response.json()
 
+def pipelines_info(url, auth, verify_ssl, params = {}):
+    """Retrieve SDC pipelines information.
+
+    Args:
+        url (str): the host url.
+        auth (tuple): a tuple of username, and password.
+        params(dict): a dict of conditions 
+        {
+            "orderBy" : "LAST_MODIFIED",
+            "order" : "ASC",
+            "label" : "system:allPipelines",
+            "offset" : "0",
+            "includStatus" : "true"
+        }
+    """
+    sysinfo_response = requests.get(
+        url + '/pipelines', params=params, headers=X_REQ_BY, auth=auth, verify=verify_ssl)
+    sysinfo_response.raise_for_status()
+    return sysinfo_response.json()
+
+
+def export_offsets(url, pipeline_id, auth, verify_ssl):
+    """Export a pipeline offset.
+
+    Args:
+        url        (str): the host url in the form 'http://host:port/'.
+        pipeline_id (str): the ID of of the exported pipeline.
+        auth     (tuple): a tuple of username, and password.
+        verify_ssl   (bool): whether to verify ssl certificates
+
+    Returns:
+        dict: the response json
+        
+    """
+    export_result = requests.get(url + '/' + pipeline_id + '/committedOffsets',
+                                 headers=X_REQ_BY, auth=auth, verify=verify_ssl)
+    if export_result.status_code == 404:
+        logging.error('Pipeline not found: ' + pipeline_id)
+    export_result.raise_for_status()
+    return export_result.json()
+
+
+def import_offsets(url, pipeline_id, auth, verify_ssl, offsetJson):
+    """Import a pipeline offset from a json.
+
+    Args:
+        url        (str): the host url in the form 'http://host:port/'.
+        pipeline_id (str): the ID of of the exported pipeline.
+        auth     (tuple): a tuple of username, and password.
+        verify_ssl   (bool): whether to verify ssl certificates
+        offsetJson      (str): offset json string.
+
+    Returns:
+        dict: the response json
+        
+    """
+    import_result = requests.post(url + '/' + pipeline_id + '/committedOffsets',
+                                  headers=X_REQ_BY, auth=auth, verify=verify_ssl, json=offsetJson)
+    import_result.raise_for_status()
+    return import_result.json()
+
+def reset_offsets(url, pipeline_id, auth, verify_ssl):
+    """Reset a pipeline offset.
+
+    Args:
+        url        (str): the host url in the form 'http://host:port/'.
+        pipeline_id (str): the ID of of the exported pipeline.
+        auth     (tuple): a tuple of username, and password.
+        verify_ssl   (bool): whether to verify ssl certificates
+
+    Returns:
+        dict: the response json
+        
+    """
+    import_result = requests.post(url + '/' + pipeline_id + '/resetOffset',
+                                  headers=X_REQ_BY, auth=auth, verify=verify_ssl)
+    import_result.raise_for_status()
+    return import_result.json()
+
 def build_pipeline_url(host_url):
     """Formats the url to include the path parts for the pipeline REST API."""
     return _base_url(host_url) + '/pipeline'

@@ -47,6 +47,18 @@ def validate_command(args):
 def status_command(args):
     return commands.status_pipeline(config, args)
 
+def list_command(args):
+    return commands.list_pipelines(config, args)
+
+def export_offset_command(args):
+    return commands.export_offset_pipeline(config, args)
+
+def import_offset_command(args):
+    return commands.import_offset_pipeline(config, args)
+
+def reset_offset_command(args):
+    return commands.reset_offset_pipeline(config, args)
+
 def define_pipeline_args(subparsers):
 
     pipeline_parser = \
@@ -138,6 +150,46 @@ def define_pipeline_args(subparsers):
                                  metavar='destinationPipelineId', help='The ID of a pipeline in the source SDC')
     validate_parser.set_defaults(func=status_command)
 
+    # pipelines list arguments
+    list_parser = pipeline_subparsers.add_parser(
+        'list', help='get all pipelines info from sdc.')
+    list_parser.add_argument('--host', required=True, dest='host', metavar='host',
+                               help='The instance name of the target SDC (must match the name in sdc-hosts.yml)')
+    list_parser.add_argument('--includeStatus', required=False, dest='status', metavar='host',
+                             help='include pipeline status(true or false)')
+    list_parser.set_defaults(status='false')
+    list_parser.set_defaults(func=list_command)
+
+    # pipeline export offset arguments
+    export_offset_parser = pipeline_subparsers.add_parser(
+        'export-offset', help='get all pipelines info from sdc.')
+    export_offset_parser.add_argument('--host', required=True, dest='host', metavar='host',
+                             help='The instance name of the target SDC (must match the name in sdc-hosts.yml)')
+    export_offset_parser.add_argument('--pipelineId', required=True, dest='pipeline_id',
+                                      metavar='destinationPipelineId', help='The ID of a pipeline in the source SDC')
+    export_offset_parser.add_argument(
+        '--out', required=True, dest='out', help='Output file path')
+    export_offset_parser.set_defaults(func=export_offset_command)
+
+    # pipeline import offset arguments
+    import_offset_parser = pipeline_subparsers.add_parser(
+        'import-offset', help='get all pipelines info from sdc.')
+    import_offset_parser.add_argument('--host', required=True, dest='host', metavar='host',
+                                      help='The instance name of the target SDC (must match the name in sdc-hosts.yml)')
+    import_offset_parser.add_argument('--pipelineId', required=True, dest='pipeline_id',
+                                      metavar='destinationPipelineId', help='The ID of a pipeline in the source SDC')
+    import_offset_parser.add_argument(
+        '--offsetJsonFile', required=True, dest='input', help='offset Json File file path')
+    import_offset_parser.set_defaults(func=import_offset_command)
+
+    # pipeline reset offset arguments
+    reset_offset_parser = pipeline_subparsers.add_parser(
+        'reset-offset', help='get all pipelines info from sdc.')
+    reset_offset_parser.add_argument('--host', required=True, dest='host', metavar='host',
+                                      help='The instance name of the target SDC (must match the name in sdc-hosts.yml)')
+    reset_offset_parser.add_argument('--pipelineId', required=True, dest='pipeline_id',
+                                    metavar='destinationPipelineId', help='The ID of a pipeline in the source SDC')
+    reset_offset_parser.set_defaults(func=reset_offset_command)
 
 def define_system_args(subparsers):
     """Append the parser arguments for the 'system' commands"""
